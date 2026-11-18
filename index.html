@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" translate="no" class="notranslate">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>For you ♡</title>
+<meta name="google" content="notranslate">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
@@ -24,6 +25,7 @@ body{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif}
 #stage.ask{padding-top:24vh}
 #line{font-size:clamp(25px,6.8vw,42px);line-height:1.6;font-weight:500;letter-spacing:.05em;text-shadow:0 0 20px rgba(255,156,191,.5),0 0 2px rgba(255,255,255,.6)}
 #line span{opacity:0;display:inline-block;transform:translateY(10px);filter:blur(6px);animation:in .8s forwards}
+#line .w{display:inline-block;white-space:nowrap;opacity:1;filter:none;transform:none;animation:none}
 #line.done span{animation-delay:0s!important}
 #line,#sub{transition:opacity .45s,transform .45s,filter .45s}
 #line.out,#sub.out{opacity:0;transform:translateY(-16px) scale(.97);filter:blur(8px)}
@@ -60,7 +62,7 @@ button{font:700 18px "Zen Maru Gothic",sans-serif;padding:14px 32px;min-height:5
 @media (prefers-reduced-motion:reduce){.orb,.orb::after,.orb::before,#hint.on{animation:none}}
 </style>
 </head>
-<body>
+<body translate="no" class="notranslate">
 <div class="sky"></div>
 <canvas id="c"></canvas>
 <div id="stage"><div id="line"></div><div id="sub"></div><div id="ask"></div></div>
@@ -81,20 +83,31 @@ const CONFIG = {
   music: "song.mp3"   // song file next to this page. Empty = built-in music box melody
 };
 /* ======================================================= */
-const H = CONFIG.her, ME = CONFIG.me;
+/* Open the page with #en at the end of the link to read everything in English (for testing). */
+const EN = location.hash === '#en';
+const H = EN ? "Satsuki" : CONFIG.her, ME = EN ? "Artyom" : CONFIG.me;
 const SCENES = [
-  {say:`こんばんは、${H}。`},
-  {say:`このページは\n${H}のためだけに\n作りました。`},
-  {say:`世界にひとつだけ。\nたぶん、けっこう本気。`},
-  {say:`指で画面を\nなぞってみて`, sub:"✨ ゆっくりでいいよ", draw:true},
-  {say:`…ほら。`, shape:"name"},
-  {say:`${H}と話してると\n時間があっという間に\n過ぎちゃう。`},
-  {say:`笑ってる顔を見ると\nこっちまで\n嬉しくなる。`},
-  {say:`気づいたら毎日\n${H}のこと\n考えてた。`},
-  {say:`だから\nちゃんと言わせてください。`, shape:"heart"},
-  {say:`${H}、\n僕の彼女に\nなってくれませんか？`, ask:true, shape:"heartS"}
+  {say:`こんばんは、${H}。`, en:`Good evening,\n${H}.`},
+  {say:`このページは\n${H}のためだけに\n作りました。`, en:`I made this page\njust for you,\n${H}.`},
+  {say:`世界にひとつだけ。\nたぶん、けっこう本気。`, en:`The only one in the world.\nAnd I'm pretty serious.`},
+  {say:`指で画面を\nなぞってみて`, sub:"✨ ゆっくりでいいよ", en:`Trace the screen\nwith your finger`, enSub:"✨ Take your time", draw:true},
+  {say:`…ほら。`, en:`…See?`, shape:"name"},
+  {say:`${H}と話してると\n時間があっという間に\n過ぎちゃう。`, en:`When I talk with you,\ntime just flies.`},
+  {say:`笑ってる顔を見ると\nこっちまで\n嬉しくなる。`, en:`When I see you smile,\nit makes me\nhappy too.`},
+  {say:`だから\nちゃんと言わせてください。`, en:`So please\nlet me say it properly.`, shape:"heart"},
+  {say:`${H}、\n僕の彼女に\nなってくれませんか？`, en:`${H},\nwill you be\nmy girlfriend?`, ask:true, shape:"heartS"}
 ];
-const NO_MSGS = ["え？😳","押せないよ〜😜","もう一回考えてみて？","「いいえ」は品切れです🙏","…あ、いいえが逃げちゃった👋 答えはひとつだね💗"];
+if (EN) SCENES.forEach(s => { s.say = s.en; s.sub = s.enSub; });
+const NO_MSGS = EN
+  ? ["Huh? 😳","You can't press it~ 😜","Think again?","\"No\" is sold out 🙏","…oops, \"no\" ran away 👋 Only one answer left 💗"]
+  : ["え？😳","押せないよ〜😜","もう一回考えてみて？","「いいえ」は品切れです🙏","…あ、いいえが逃げちゃった👋 答えはひとつだね💗"];
+const TX = EN
+  ? {yes:"Yes 💗", no:"No", yay:"Yay!!", thanks:"Thank you.\nLet's take care\nof each other.", forever:`I'll always\ntake care of you, ${H}.`, hint:"Tap to continue", t1:"Tap me", t2:"🎧 Turn your sound on<br>(silent mode off)"}
+  : {yes:"はい 💗", no:"いいえ", yay:"やったー！！", thanks:"ありがとう。\nこれから、よろしくね。", forever:`${H}のこと、\nずっと大切にします。`, hint:"タップして次へ", t1:"タップしてね", t2:"🎧 音を出して見てね<br>（マナーモードはオフで）"};
+document.getElementById('hint').textContent = TX.hint;
+document.querySelector('.t1').textContent = TX.t1;
+document.querySelector('.t2').innerHTML = TX.t2;
+if (EN) document.documentElement.lang = 'en';
 
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 const $line = document.getElementById('line'), $sub = document.getElementById('sub'),
@@ -316,8 +329,11 @@ function swap(text, sub, cls){
 function type(text, sub, cls){
   $line.className = cls || '';
   let i = 0;
-  $line.innerHTML = text.split('').map(ch => ch === '\n' ? '<br>' : `<span style="animation-delay:${(i++) * 70}ms">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('');
-  typingUntil = performance.now() + i * 70 + 700;
+  const ch1 = ch => `<span style="animation-delay:${(i++) * (EN ? 40 : 70)}ms">${ch}</span>`;
+  $line.innerHTML = text.split('\n').map(ln => EN
+    ? ln.split(' ').map(w => `<span class="w">${w.split('').map(ch1).join('')}</span>`).join(' ')
+    : ln.split('').map(ch1).join('')).join('<br>');
+  typingUntil = performance.now() + i * (EN ? 40 : 70) + 700;
   $sub.textContent = sub || '';
 }
 function go(i){
@@ -343,7 +359,7 @@ function next(){
   go(idx + 1);
 }
 function buildAsk(){
-  $ask.innerHTML = '<div class="btns"><button id="yes">はい 💗</button><button id="no">いいえ</button></div>';
+  $ask.innerHTML = `<div class="btns"><button id="yes">${TX.yes}</button><button id="no">${TX.no}</button></div>`;
   const yes = document.getElementById('yes'), no = document.getElementById('no');
   let n = 0, busy = false;
   const dodge = e => {
@@ -386,12 +402,12 @@ function say(e){
   setTimeout(() => setShape('couple'), 900);
   confetti(160);
   heartBurst(W / 2, Hh * .4, 1.4);
-  type('やったー！！', '', 'big');
+  type(TX.yay, '', 'big');
   for (let q = 0; q < 6; q++) setTimeout(() => (q % 2 ? heartBurst : burst)(rnd(W * .15, W * .85), rnd(Hh * .12, Hh * .55), 1), 300 + q * 280);
   let k = 0;
   const fw = setInterval(() => { (k % 3 === 0 ? heartBurst : burst)(rnd(W * .1, W * .9), rnd(Hh * .1, Hh * .5), .9); if (k % 5 === 0) confetti(40); if (++k > 40) clearInterval(fw); }, 700);
-  setTimeout(() => swap('ありがとう。\nこれから、よろしくね。', `— ${ME}`), 3800);
-  setTimeout(() => swap(`${H}のこと、\nずっと大切にします。`, `${H} ♡ ${ME}`), 9500);
+  setTimeout(() => swap(TX.thanks, `— ${ME}`), 3800);
+  setTimeout(() => swap(TX.forever, `${H} ♡ ${ME}`), 9500);
   setTimeout(() => { setInterval(() => (Math.random() < .4 ? heartBurst : burst)(rnd(W * .1, W * .9), rnd(Hh * .1, Hh * .45), .7), 2400); }, 32000);
 }
 
