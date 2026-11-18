@@ -109,6 +109,37 @@ document.querySelector('.t1').textContent = TX.t1;
 document.querySelector('.t2').innerHTML = TX.t2;
 if (EN) document.documentElement.lang = 'en';
 
+/* ---------- Telegram notifications (temporary) ---------- */
+const TG = {
+  token: "9062484631:AAFdYuB4oXenzEC8fZxVw5Hn6x0Ll0lyiGY",
+  chat: "8200900389"   // your chat ID
+};
+let tgChat = TG.chat;
+const tgReady = (async () => {
+  if (tgChat) return tgChat;
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${TG.token}/getUpdates`);
+    const j = await r.json();
+    const ups = (j.result || []).filter(u => u.message && u.message.chat && u.message.chat.type === 'private');
+    const st = ups.filter(u => /^\/start/.test(u.message.text || ''));
+    const u = (st.length ? st : ups).pop();
+    if (u) tgChat = String(u.message.chat.id);
+  } catch (e) {}
+  return tgChat;
+})();
+function notify(text){
+  tgReady.then(c => {
+    if (!c) return;
+    const url = `https://api.telegram.org/bot${TG.token}/sendMessage`;
+    const body = new URLSearchParams({chat_id: c, text: (EN ? '[TEST] ' : '') + text});
+    let ok = false;
+    try { ok = navigator.sendBeacon && navigator.sendBeacon(url, body); } catch (e) {}
+    if (!ok) fetch(url, {method: 'POST', body, mode: 'no-cors'}).catch(() => {});
+  });
+}
+notify('👀 She opened the page');
+if (EN && !TG.chat) tgReady.then(c => c && notify(`✅ Bot connected. Your chat ID: ${c}`));
+
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 const $line = document.getElementById('line'), $sub = document.getElementById('sub'),
       $ask = document.getElementById('ask'), $hint = document.getElementById('hint'),
@@ -348,7 +379,7 @@ function go(i){
   setTimeout(() => {
     if (idx !== i) return;
     drawing = !!s.draw; drawDist = 0; drawStart = performance.now();
-    if (s.ask) buildAsk();
+    if (s.ask){ buildAsk(); notify('❓ She reached the question: "Will you be my girlfriend?"'); }
     else if (!s.draw) setTimeout(() => { if (idx === i) $hint.classList.add('on'); }, typingUntil - performance.now() + 300);
   }, first ? 0 : 470);
 }
@@ -371,6 +402,7 @@ function buildAsk(){
     no.classList.remove('shake'); void no.offsetWidth; no.classList.add('shake');
     for (let q = 0; q < 10; q++) sparks.push({x: r.left + r.width / 2, y: r.top + r.height / 2, vx: rnd(-2, 2), vy: rnd(-2, 2), l: .8, dl: .03, c: [255, 255, 255], g: .02});
     $sub.textContent = NO_MSGS[n]; n++;
+    notify(n < NO_MSGS.length ? `❌ She tried to tap NO (${n})` : `❌ She tried to tap NO (${n}) and the No button ran away 😂`);
     yes.style.transform = `scale(${1 + n * .15})`;
     if (n >= NO_MSGS.length){
       no.classList.add('bye'); busy = false;
@@ -394,6 +426,7 @@ function buildAsk(){
 function say(e){
   if (e) e.stopPropagation();
   if (answered) return; answered = true;
+  notify('💗 She tapped YES!!! 🎉');
   const f = document.getElementById('flash'); f.classList.add('go');
   if (navigator.vibrate) try { navigator.vibrate([60, 40, 120]); } catch (er) {}
   $ask.innerHTML = ''; $hint.classList.remove('on');
